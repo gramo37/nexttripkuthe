@@ -1,0 +1,17 @@
+{
+    "apps": [
+      {
+        "name": "next-trip-kuthe",
+        "script": "./build/main.js",
+        "watch": false,
+        "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+        "env": {
+          "PORT": 3000,
+          "NODE_ENV": "dev",
+          "CLUSTER_FLAG": false,
+          "DATABASE_CONNECTION_STRING": "postgresql://next-trip-kuthe:Pass@123!@localhost:5432/postgres",
+          "DATABASE_POOL_MAX_TRANSACTION": 20
+        }
+      }
+    ]
+  }
