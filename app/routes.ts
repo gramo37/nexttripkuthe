@@ -1,22 +1,25 @@
-// src/routes/homeRoute.ts
-import path from 'path';
-import {pool} from "./utils/database"
+import {
+  addExpense,
+  getAllExpenses,
+  deleteExpense,
+  updateExpense,
+  showTransactions
+} from "./controllers/expense_controller";
 
 export const injectRoutes = (app: any) => {
-    app.get("/home", (req:any, res:any)=>{
-        const filePath = path.join(__dirname, '../public/index.html');
-        res.sendFile(filePath);
-    })
+  // Display all expenses made at a particular time frame
+  app.post("/get-all-expenses", getAllExpenses);
 
-    app.get("/demo", async (req:any, res:any) => {
-        try {
-            const users = await pool.query("SELECT * FROM users");
-            const data = { message: 'API call successful', users: users.rows };
-            res.json(data);
-        } catch (error) {   
-            throw error;
-        }
-    })
+  app.post("/add-expense", addExpense);
 
-    // Creating CRUD apis for adding and removing expenses
-}
+  // Delete an expense
+  app.post("/delete-expense", deleteExpense);
+
+  // Update an expense
+  app.post("/update-expense", updateExpense);
+
+  // Calculate who owes how much in minimum no of transactions
+  app.post("/show-all-transactions", showTransactions)
+
+  // User Authentication routes
+};
