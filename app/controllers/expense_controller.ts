@@ -1,3 +1,4 @@
+import { getTransactions } from "../services/calculateTransactions";
 import { sendError, sendSuccess } from "../utils/common";
 import { executeQuery } from "../utils/database";
 import * as _ from "lodash";
@@ -139,5 +140,23 @@ export const updateExpense = async (req: any, res: any) => {
 };
 
 export const showTransactions = async (req: any, res: any) => {
-  const {expense_id} = req.body;
+  try {
+    let expenses = await executeQuery(`SELECT * FROM expenses`);
+    let inputs: any = [];
+    for(const expense of expenses) {
+      const expense_id = expense.expense_id;
+      let debtors = await executeQuery(`SELECT user_id, money_paid FROM debtor_expense where expense_id = $1`, [expense_id]);
+      let creditors = await executeQuery(`SELECT user_id FROM creditor_expense where expense_id = $1`, [expense_id]);
+      inputs.push({
+        expense_id,
+        debtors,
+        creditors
+      })
+    }
+    const transactions = getTransactions(inputs);
+    sendSuccess(req, res, transactions);
+  } catch (error) {
+    console.log(error);
+    sendError(req, res, error);
+  }
 };

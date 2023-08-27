@@ -6,7 +6,7 @@
         "watch": false,
         "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
         "env": {
-          "PORT": 3000,
+          "PORT": 5000,
           "NODE_ENV": "dev",
           "CLUSTER_FLAG": false,
           "DATABASE_CONNECTION_STRING": "postgresql://next-trip-kuthe:Pass@123!@localhost:5432/postgres",
