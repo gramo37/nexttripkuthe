@@ -7,10 +7,13 @@ export const addExpense = async (req: any, res: any) => {
   try {
     // Add row in expense table
     const { reason, debtors, creditors } = req.body;
+    let money_paid = 0;
+    for (let debtor of debtors || [])
+      money_paid += _.toNumber(debtor?.money_paid);
     // Debtors have paid money for creditors -> that's why they have an extra column for paid_money
     const data = await executeQuery(
-      `INSERT INTO expenses (reason) VALUES ($1) returning expense_id;`,
-      [reason]
+      `INSERT INTO expenses (reason, money_paid) VALUES ($1, $2) returning expense_id;`,
+      [reason, money_paid]
     );
     const expense_id = data[0].expense_id;
     // Add debtors in debtors_expense table
@@ -36,10 +39,13 @@ export const addExpense = async (req: any, res: any) => {
 
 export const getAllExpenses = async (req: any, res: any) => {
   try {
-    const { timeframe, offset } = req.body || {};
+    let { timeframe, offset } = req.body || {};
     if (!["day", "week", "month", "year", "all"].includes(timeframe))
-      sendError(req, res, "Wrong TimeFrame provided.");
-    if (offset < 0) sendError(req, res, "Wrong Offset provided.");
+      timeframe = "all";
+    if (offset < 0) offset = 0;
+    // if (!["day", "week", "month", "year", "all"].includes(timeframe))
+    //   sendError(req, res, "Wrong TimeFrame provided.");
+    // if (offset < 0) sendError(req, res, "Wrong Offset provided.");
 
     let statement: string;
     switch (timeframe) {
@@ -52,7 +58,7 @@ export const getAllExpenses = async (req: any, res: any) => {
       }
     }
 
-    statement += " ORDER BY created_at desc LIMIT 10;";
+    // statement += " ORDER BY created_at desc LIMIT 10;";
     let expenses = await executeQuery(statement);
     sendSuccess(req, res, expenses);
   } catch (error) {
@@ -141,17 +147,49 @@ export const updateExpense = async (req: any, res: any) => {
 
 export const showTransactions = async (req: any, res: any) => {
   try {
-    let expenses = await executeQuery(`SELECT * FROM expenses`);
+    let debtor_expense =
+      await executeQuery(`SELECT de.expense_id, e.reason, de.money_paid, de.user_id, u.name
+    FROM debtor_expense de
+    JOIN expenses e ON de.expense_id = e.expense_id
+    JOIN users u ON u.user_id = de.user_id 
+    ORDER BY de.expense_id;`);
+
+    let creditor_expense =
+      await executeQuery(`SELECT ce.expense_id, e.reason, ce.user_id, u.name
+    FROM creditor_expense ce
+    JOIN expenses e ON ce.expense_id = e.expense_id
+    JOIN users u ON u.user_id = ce.user_id 
+    ORDER BY ce.expense_id;`);
+
+    creditor_expense = transformExpenses(creditor_expense);
+    debtor_expense = transformExpenses(debtor_expense);
+
+    let expenses = await executeQuery(`SELECT expense_id FROM expenses`);
     let inputs: any = [];
-    for(const expense of expenses) {
+    let inputs2: any = [];
+    for (const expense of expenses) {
       const expense_id = expense.expense_id;
-      let debtors = await executeQuery(`SELECT user_id, money_paid FROM debtor_expense where expense_id = $1`, [expense_id]);
-      let creditors = await executeQuery(`SELECT user_id FROM creditor_expense where expense_id = $1`, [expense_id]);
       inputs.push({
         expense_id,
+        debtors: debtor_expense[expense_id] || [],
+        creditors: creditor_expense[expense_id] || [],
+      });
+    }
+    for (const expense of expenses) {
+      const expense_id = expense.expense_id;
+      let debtors = await executeQuery(
+        `SELECT user_id, money_paid FROM debtor_expense where expense_id = $1`,
+        [expense_id]
+      );
+      let creditors = await executeQuery(
+        `SELECT user_id FROM creditor_expense where expense_id = $1`,
+        [expense_id]
+      );
+      inputs2.push({
+        expense_id,
         debtors,
-        creditors
-      })
+        creditors,
+      });
     }
     const transactions = getTransactions(inputs);
     sendSuccess(req, res, transactions);
@@ -160,3 +198,18 @@ export const showTransactions = async (req: any, res: any) => {
     sendError(req, res, error);
   }
 };
+
+function transformExpenses(creditor_expense: any) {
+  // Group the creditor_expense array by expense_id
+  const groupedExpenses = _.groupBy(creditor_expense, "expense_id");
+
+  // Convert the groupedExpenses object to the desired format
+  const transformedData: any = {};
+  for (const expense_id in groupedExpenses) {
+    if (groupedExpenses.hasOwnProperty(expense_id)) {
+      transformedData[expense_id] = groupedExpenses[expense_id];
+    }
+  }
+
+  return transformedData;
+}
