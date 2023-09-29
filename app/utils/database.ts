@@ -1,21 +1,32 @@
 const { Pool } = require("pg");
 
 export const pool = new Pool({
-    user: "user123",
-    password: "password123",
-    host: "68.183.93.128",
-    port: 5432,
-    database: "postgres"
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT,
+  database: process.env.DATABASE,
 });
 
-export const executeQuery = async (statement:any, bindings?:any) => {
-    try {
-        const res = await pool.query(statement, bindings)
-        return res.rows;
-    } catch (error) {
-        console.log(error);
-    }
-}
+export const executeQuery = async (statement: any, bindings?: any) => {
+  try {
+    const res = await pool.query(statement, bindings);
+    return res.rows;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const initdb = () => {
+  pool
+    .connect()
+    .then(() => {
+      console.log("Connected to the database");
+    })
+    .catch((err: any) => {
+      console.error("Error connecting to the database:", err);
+    });
+};
 
 // export const client = new Client({
 //   connectionString:
