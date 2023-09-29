@@ -9,7 +9,7 @@
         "PORT": 5000,
         "DATABASE_USER": "user123",
         "DATABASE_PASSWORD": "password123",
-        "DATABASE_HOST": "localhost",
+        "DATABASE_HOST": "68.183.93.128",
         "DATABASE_PORT": 5432,
         "DATABASE": "postgres",
         "NODE_ENV": "dev",
