@@ -5,7 +5,7 @@ import {
   updateExpense,
   showTransactions,
 } from "./controllers/expense_controller";
-import { getAllUsers } from "./controllers/user_controller";
+import { addUsers, getAllUsers } from "./controllers/user_controller";
 
 export const injectRoutes = (app: any) => {
   // Display all expenses made at a particular time frame
@@ -24,4 +24,6 @@ export const injectRoutes = (app: any) => {
 
   // User Authentication routes
   app.post("/get-all-users", getAllUsers);
+
+  app.post("/add-users", addUsers);
 };
