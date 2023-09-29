@@ -7,6 +7,16 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL
 );
 
+INSERT INTO users (name, email, password)
+VALUES
+    ('Anushka', 'anushka@example.com', 'password123'),
+    ('Geeta', 'geeta@example.com', 'securepass'),
+    ('Vidya', 'vidya@example.com', 'securepass'),
+    ('Siddhu mama', 'sidhu@example.com', 'securepass'),
+    ('Amogh', 'amogh@example.com', 'password123'),
+    ('Anil', 'anil@example.com', 'securepass'),
+    ('Pradeep', 'pradeep@example.com', 'mysecret');
+
 CREATE TABLE expenses (
     expense_id SERIAL PRIMARY KEY,
     reason VARCHAR(255) NOT NULL,
