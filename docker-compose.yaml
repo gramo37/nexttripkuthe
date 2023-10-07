@@ -12,7 +12,6 @@ services:
     image: nxk-api-prod:1.0.0
     build:
       context: .
-      target: production
       dockerfile: Dockerfile
     ports:
       - 5000:5000
